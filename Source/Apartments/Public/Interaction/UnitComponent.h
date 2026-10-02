@@ -14,7 +14,8 @@ class APARTMENTS_API UUnitComponent : public UActorComponent {
   GENERATED_BODY()
 
 public:
-  const FString& GetUnitId() const { return UnitId; }
+  UFUNCTION(BlueprintPure)
+  FString GetUnitId() const { return UnitId; }
   void ApplyVisuals(bool bSelected, bool bHideSold);
 
 protected:

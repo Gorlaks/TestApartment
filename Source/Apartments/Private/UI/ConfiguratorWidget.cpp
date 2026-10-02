@@ -4,6 +4,7 @@
 #include "General/FunctionLibrary.h"
 #include "Interaction/UnitSceneSubsystem.h"
 #include "UI/SelectionEntryWidget.h"
+#include "Blueprint/WidgetTree.h"
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
 #include "Components/TextBlock.h"
@@ -37,6 +38,12 @@ void UConfiguratorWidget::NativeOnInitialized() {
 
 void UConfiguratorWidget::NativeConstruct() {
   Super::NativeConstruct();
+
+  // Пустая область интерфейса не должна перехватывать движение мыши.
+  SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+  if (WidgetTree && WidgetTree->RootWidget) {
+    WidgetTree->RootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+  }
 
   if (UGameInstance* GameInstance = GetGameInstance()) {
     DataSubsystem = GameInstance->GetSubsystem<UDataSubsystem>();
