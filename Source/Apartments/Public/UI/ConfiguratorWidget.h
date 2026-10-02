@@ -57,6 +57,9 @@ private:
   UPROPERTY(meta = (BindWidget))
   TObjectPtr<UButton> BackButton;
 
+  UPROPERTY(meta = (BindWidgetOptional))
+  TObjectPtr<UButton> GenplanButton;
+
   UPROPERTY(meta = (BindWidget))
   TObjectPtr<UWidget> UnitCard;
 
@@ -109,6 +112,9 @@ private:
 
   UFUNCTION()
   void HandleBackClicked();
+
+  UFUNCTION()
+  void HandleGenplanClicked();
 
   UFUNCTION()
   void HandleReserveClicked();

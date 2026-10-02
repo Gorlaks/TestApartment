@@ -51,7 +51,7 @@ bool UDataSubsystem::LoadFromFile(const FString& FilePath) {
         Subsystem->bHasData = true;
         UGeneralFunctionLibrary::PrintLog(Result.Message);
       } else {
-        // При ошибке оставляет последние рабочие данные
+        // При ошибке делает лог, а старые данные не меняются
         UGeneralFunctionLibrary::PrintLog(Result.Message, EPrintLogLevel::Error);
       }
 

@@ -17,6 +17,7 @@ void UConfiguratorWidget::SetCameraPawn(ACameraPawn* InCameraPawn) {
   }
 
   CameraPawn = InCameraPawn;
+  if (GenplanButton) GenplanButton->SetIsEnabled(CameraPawn && DataSubsystem && DataSubsystem->HasData());
   if (CameraPawn) {
     CameraPawn->OnViewChanged.AddUniqueDynamic(this, &UConfiguratorWidget::HandleViewChanged);
     HandleViewChanged(CameraPawn->GetViewMode(), CameraPawn->GetSelectedId());
@@ -30,6 +31,7 @@ void UConfiguratorWidget::NativeOnInitialized() {
   Super::NativeOnInitialized();
   HideSoldCheckBox->OnCheckStateChanged.AddDynamic(this, &UConfiguratorWidget::HandleHideSoldChanged);
   BackButton->OnClicked.AddDynamic(this, &UConfiguratorWidget::HandleBackClicked);
+  if (GenplanButton) GenplanButton->OnClicked.AddDynamic(this, &UConfiguratorWidget::HandleGenplanClicked);
   ReserveButton->OnClicked.AddDynamic(this, &UConfiguratorWidget::HandleReserveClicked);
 }
 
@@ -48,6 +50,7 @@ void UConfiguratorWidget::NativeConstruct() {
     Scene->SetHideSold(bHideSold);
   }
   BackButton->SetIsEnabled(CameraPawn && CameraPawn->CanGoBack());
+  if (GenplanButton) GenplanButton->SetIsEnabled(CameraPawn && DataSubsystem && DataSubsystem->HasData());
   ReserveButton->SetIsEnabled(false);
   HideUnitCard();
   // Виджет создаётся отдельно и JSON мог загрузиться ещё до открытия этого виджета
@@ -78,8 +81,13 @@ void UConfiguratorWidget::RebuildFloorList() {
   FloorList->ClearChildren();
   if (!FloorEntryClass) return;
 
-  // Создаёт кнопки этажей по полученным данным
-  for (const FFloorData& Floor : BuildingData.Floors) {
+  // Верхний этаж показываем первым
+  TArray<FFloorData> Floors = BuildingData.Floors;
+  Floors.Sort([](const FFloorData& Left, const FFloorData& Right) {
+    return Left.Number > Right.Number;
+  });
+
+  for (const FFloorData& Floor : Floors) {
     USelectionEntryWidget* Entry = CreateWidget<USelectionEntryWidget>(GetOwningPlayer(), FloorEntryClass);
     if (!Entry) continue;
 
@@ -127,6 +135,7 @@ void UConfiguratorWidget::HideUnitCard() {
 }
 
 void UConfiguratorWidget::HandleDataLoaded(bool bSuccess, FString Message) {
+  if (GenplanButton) GenplanButton->SetIsEnabled(bSuccess && CameraPawn);
   if (bSuccess) RefreshFromData();
 }
 
@@ -186,6 +195,10 @@ void UConfiguratorWidget::HandleHideSoldChanged(bool bIsChecked) {
 
 void UConfiguratorWidget::HandleBackClicked() {
   if (CameraPawn) CameraPawn->GoBack();
+}
+
+void UConfiguratorWidget::HandleGenplanClicked() {
+  if (CameraPawn) CameraPawn->ShowGenplan();
 }
 
 void UConfiguratorWidget::HandleReserveClicked() {
