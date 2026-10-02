@@ -39,12 +39,6 @@ void UConfiguratorWidget::NativeOnInitialized() {
 void UConfiguratorWidget::NativeConstruct() {
   Super::NativeConstruct();
 
-  // Пустая область интерфейса не должна перехватывать движение мыши.
-  SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-  if (WidgetTree && WidgetTree->RootWidget) {
-    WidgetTree->RootWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-  }
-
   if (UGameInstance* GameInstance = GetGameInstance()) {
     DataSubsystem = GameInstance->GetSubsystem<UDataSubsystem>();
   }
