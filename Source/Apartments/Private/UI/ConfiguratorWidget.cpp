@@ -11,6 +11,21 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 
+void UConfiguratorWidget::SetCameraPawn(ACameraPawn* InCameraPawn) {
+  if (CameraPawn) {
+    CameraPawn->OnViewChanged.RemoveDynamic(this, &UConfiguratorWidget::HandleViewChanged);
+  }
+
+  CameraPawn = InCameraPawn;
+  if (CameraPawn) {
+    CameraPawn->OnViewChanged.AddUniqueDynamic(this, &UConfiguratorWidget::HandleViewChanged);
+    HandleViewChanged(CameraPawn->GetViewMode(), CameraPawn->GetSelectedId());
+  } else {
+    BackButton->SetIsEnabled(false);
+    HideUnitCard();
+  }
+}
+
 void UConfiguratorWidget::NativeOnInitialized() {
   Super::NativeOnInitialized();
   HideSoldCheckBox->OnCheckStateChanged.AddDynamic(this, &UConfiguratorWidget::HandleHideSoldChanged);
@@ -20,11 +35,6 @@ void UConfiguratorWidget::NativeOnInitialized() {
 
 void UConfiguratorWidget::NativeConstruct() {
   Super::NativeConstruct();
-
-  if (!CameraPawn) CameraPawn = GetOwningPlayerPawn<ACameraPawn>();
-  if (CameraPawn) {
-    CameraPawn->OnViewChanged.AddUniqueDynamic(this, &UConfiguratorWidget::HandleViewChanged);
-  }
 
   if (UGameInstance* GameInstance = GetGameInstance()) {
     DataSubsystem = GameInstance->GetSubsystem<UDataSubsystem>();

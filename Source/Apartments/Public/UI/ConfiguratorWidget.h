@@ -23,7 +23,7 @@ class APARTMENTS_API UConfiguratorWidget : public UUserWidget {
   GENERATED_BODY()
 
 public:
-  void SetCameraPawn(ACameraPawn* InCameraPawn) { CameraPawn = InCameraPawn; }
+  void SetCameraPawn(ACameraPawn* InCameraPawn);
 
   UFUNCTION(BlueprintPure)
   bool IsHidingSold() const { return bHideSold; }

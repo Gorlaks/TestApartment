@@ -1,13 +1,10 @@
 #include "General/CameraPawn.h"
 
 #include "DataSubsystem.h"
-#include "General/FunctionLibrary.h"
 #include "Interaction/UnitSceneSubsystem.h"
-#include "UI/ConfiguratorWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 
 ACameraPawn::ACameraPawn() {
@@ -33,36 +30,6 @@ void ACameraPawn::BeginPlay() {
     if (UDataSubsystem* Data = GameInstance->GetSubsystem<UDataSubsystem>()) {
       Data->OnLoadFinished.AddDynamic(this, &ACameraPawn::HandleDataLoaded);
       if (Data->HasData()) HandleDataLoaded(true, TEXT(""));
-    }
-  }
-}
-
-void ACameraPawn::EndPlay(const EEndPlayReason::Type EndPlayReason) {
-  if (ConfiguratorWidget) {
-    ConfiguratorWidget->RemoveFromParent();
-    ConfiguratorWidget = nullptr;
-  }
-
-  if (UGameInstance* GameInstance = GetGameInstance()) {
-    if (UDataSubsystem* Data = GameInstance->GetSubsystem<UDataSubsystem>()) {
-      Data->OnLoadFinished.RemoveDynamic(this, &ACameraPawn::HandleDataLoaded);
-    }
-  }
-  Super::EndPlay(EndPlayReason);
-}
-
-void ACameraPawn::PossessedBy(AController* NewController) {
-  Super::PossessedBy(NewController);
-  if (APlayerController* Player = Cast<APlayerController>(NewController)) {
-    UGeneralFunctionLibrary::SetInputMode(Player, EViewportInputMode::GameAndUI);
-    Player->bEnableClickEvents = true;
-
-    if (ConfiguratorWidgetClass && !ConfiguratorWidget) {
-      ConfiguratorWidget = CreateWidget<UConfiguratorWidget>(Player, ConfiguratorWidgetClass);
-      if (ConfiguratorWidget) {
-        ConfiguratorWidget->SetCameraPawn(this);
-        ConfiguratorWidget->AddToViewport();
-      }
     }
   }
 }

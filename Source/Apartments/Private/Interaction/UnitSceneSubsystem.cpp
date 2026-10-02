@@ -2,13 +2,13 @@
 
 #include "Interaction/UnitComponent.h"
 
-void UUnitSceneSubsystem::RegisterUnit(UUnitComponent* Unit) {
+void UUnitSceneSubsystem::AddUnit(UUnitComponent* Unit) {
   if (!Unit) return;
   Units.AddUnique(TWeakObjectPtr<UUnitComponent>(Unit));
   RefreshUnit(Unit);
 }
 
-void UUnitSceneSubsystem::UnregisterUnit(UUnitComponent* Unit) {
+void UUnitSceneSubsystem::RemoveUnit(UUnitComponent* Unit) {
   Units.Remove(TWeakObjectPtr<UUnitComponent>(Unit));
 }
 

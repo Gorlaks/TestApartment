@@ -6,7 +6,6 @@
 #include "CameraPawn.generated.h"
 
 class USpringArmComponent;
-class UConfiguratorWidget;
 
 UENUM(BlueprintType)
 enum class ECameraViewMode : uint8 {
@@ -48,16 +47,11 @@ public:
   UFUNCTION(BlueprintPure)
   FString GetSelectedId() const { return CurrentView.SelectedId; }
 
-  UFUNCTION(BlueprintPure)
-  UConfiguratorWidget* GetConfiguratorWidget() const { return ConfiguratorWidget; }
-
   UPROPERTY(BlueprintAssignable)
   FOnCameraViewChanged OnViewChanged;
 
 protected:
   virtual void BeginPlay() override;
-  virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-  virtual void PossessedBy(AController* NewController) override;
   virtual void Tick(float DeltaTime) override;
 
 private:
@@ -72,12 +66,6 @@ private:
 
   UPROPERTY(Transient)
   TObjectPtr<USpringArmComponent> SpringArm;
-
-  UPROPERTY(EditDefaultsOnly)
-  TSubclassOf<UConfiguratorWidget> ConfiguratorWidgetClass;
-
-  UPROPERTY(Transient)
-  TObjectPtr<UConfiguratorWidget> ConfiguratorWidget;
 
   UPROPERTY(EditDefaultsOnly, meta = (ClampMin = "0.01"))
   float TransitionDuration;

@@ -25,7 +25,7 @@ void UUnitComponent::BeginPlay() {
   GetOwner()->OnClicked.AddUniqueDynamic(this, &UUnitComponent::HandleActorClicked);
 
   if (UUnitSceneSubsystem* Scene = GetWorld()->GetSubsystem<UUnitSceneSubsystem>()) {
-    Scene->RegisterUnit(this);
+    Scene->AddUnit(this);
   }
 
   if (UGameInstance* GameInstance = GetWorld()->GetGameInstance()) {
@@ -49,7 +49,7 @@ void UUnitComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
   GetOwner()->OnClicked.RemoveDynamic(this, &UUnitComponent::HandleActorClicked);
   if (UWorld* World = GetWorld()) {
     if (UUnitSceneSubsystem* Scene = World->GetSubsystem<UUnitSceneSubsystem>()) {
-      Scene->UnregisterUnit(this);
+      Scene->RemoveUnit(this);
     }
   }
   Super::EndPlay(EndPlayReason);

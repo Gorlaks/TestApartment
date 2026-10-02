@@ -13,8 +13,8 @@ class APARTMENTS_API UUnitSceneSubsystem : public UWorldSubsystem {
   GENERATED_BODY()
 
 public:
-  void RegisterUnit(UUnitComponent* Unit);
-  void UnregisterUnit(UUnitComponent* Unit);
+  void AddUnit(UUnitComponent* Unit);
+  void RemoveUnit(UUnitComponent* Unit);
   void RefreshUnit(UUnitComponent* Unit) const;
   void SetSelectedUnit(const FString& UnitId);
   void SetHideSold(bool bInHideSold);
