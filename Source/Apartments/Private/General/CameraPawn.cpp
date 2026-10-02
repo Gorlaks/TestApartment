@@ -79,7 +79,7 @@ bool ACameraPawn::ShowFloor(int32 FloorNumber) {
 
     FView View;
     View.FocusPoint = Floor.FocusPoint;
-    View.Rotation = CurrentView.Rotation;
+    View.Rotation = GenplanRotation;
     View.Distance = FloorDistance;
     View.Mode = ECameraViewMode::Floor;
     View.SelectedId = Floor.Id;
@@ -101,7 +101,7 @@ bool ACameraPawn::ShowUnit(const FString& UnitId) {
 
       FView View;
       View.FocusPoint = Unit.FocusPoint;
-      View.Rotation = CurrentView.Rotation;
+      View.Rotation = GenplanRotation;
       View.Distance = UnitDistance;
       View.Mode = ECameraViewMode::Unit;
       View.SelectedId = Unit.Id;
@@ -125,7 +125,7 @@ void ACameraPawn::Orbit(float HorizontalDelta, float VerticalDelta) {
 
   FRotator Rotation = SpringArm->GetRelativeRotation();
   Rotation.Yaw += HorizontalDelta * OrbitSensitivity;
-  Rotation.Pitch = FMath::Clamp(Rotation.Pitch - VerticalDelta * OrbitSensitivity, MinOrbitPitch, MaxOrbitPitch);
+  Rotation.Pitch = FMath::Clamp(Rotation.Pitch + VerticalDelta * OrbitSensitivity, MinOrbitPitch, MaxOrbitPitch);
   SpringArm->SetRelativeRotation(Rotation);
   CurrentView.Rotation = Rotation;
 }
