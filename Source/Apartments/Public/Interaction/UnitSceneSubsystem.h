@@ -20,7 +20,7 @@ public:
   void SetHideSold(bool bInHideSold);
 
 private:
-  // Компоненты могут исчезнуть при выгрузке уровня, поэтому ссылки слабые
+  // Слабые ссылки, чтобы не удерживать компоненты после удаления
   TArray<TWeakObjectPtr<UUnitComponent>> Units;
   FString SelectedUnitId;
   bool bHideSold = false;
