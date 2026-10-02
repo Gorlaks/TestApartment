@@ -1,0 +1,166 @@
+{
+  "building": {
+    "id": "B1",
+    "name": "Main Building",
+    "genplan_focus_point": {
+      "x": 0,
+      "y": 0,
+      "z": 480
+    },
+    "floors": [
+      {
+        "id": "F01",
+        "number": 1,
+        "focus_point": {
+          "x": 0,
+          "y": 0,
+          "z": 160
+        },
+        "apartments": [
+          {
+            "id": "101",
+            "status": "free",
+            "area_sqm": 42.5,
+            "focus_point": {
+              "x": -300,
+              "y": -225,
+              "z": 160
+            }
+          },
+          {
+            "id": "102",
+            "status": "sold",
+            "area_sqm": 56.8,
+            "focus_point": {
+              "x": 300,
+              "y": -225,
+              "z": 160
+            }
+          },
+          {
+            "id": "103",
+            "status": "free",
+            "area_sqm": 63.2,
+            "focus_point": {
+              "x": -300,
+              "y": 225,
+              "z": 160
+            }
+          },
+          {
+            "id": "104",
+            "status": "free",
+            "area_sqm": 78.4,
+            "focus_point": {
+              "x": 300,
+              "y": 225,
+              "z": 160
+            }
+          }
+        ]
+      },
+      {
+        "id": "F02",
+        "number": 2,
+        "focus_point": {
+          "x": 0,
+          "y": 0,
+          "z": 480
+        },
+        "apartments": [
+          {
+            "id": "201",
+            "status": "sold",
+            "area_sqm": 42.5,
+            "focus_point": {
+              "x": -300,
+              "y": -225,
+              "z": 480
+            }
+          },
+          {
+            "id": "202",
+            "status": "free",
+            "area_sqm": 56.8,
+            "focus_point": {
+              "x": 300,
+              "y": -225,
+              "z": 480
+            }
+          },
+          {
+            "id": "203",
+            "status": "free",
+            "area_sqm": 63.2,
+            "focus_point": {
+              "x": -300,
+              "y": 225,
+              "z": 480
+            }
+          },
+          {
+            "id": "204",
+            "status": "sold",
+            "area_sqm": 78.4,
+            "focus_point": {
+              "x": 300,
+              "y": 225,
+              "z": 480
+            }
+          }
+        ]
+      },
+      {
+        "id": "F03",
+        "number": 3,
+        "focus_point": {
+          "x": 0,
+          "y": 0,
+          "z": 800
+        },
+        "apartments": [
+          {
+            "id": "301",
+            "status": "free",
+            "area_sqm": 42.5,
+            "focus_point": {
+              "x": -300,
+              "y": -225,
+              "z": 800
+            }
+          },
+          {
+            "id": "302",
+            "status": "free",
+            "area_sqm": 56.8,
+            "focus_point": {
+              "x": 300,
+              "y": -225,
+              "z": 800
+            }
+          },
+          {
+            "id": "303",
+            "status": "sold",
+            "area_sqm": 63.2,
+            "focus_point": {
+              "x": -300,
+              "y": 225,
+              "z": 800
+            }
+          },
+          {
+            "id": "304",
+            "status": "free",
+            "area_sqm": 78.4,
+            "focus_point": {
+              "x": 300,
+              "y": 225,
+              "z": 800
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
