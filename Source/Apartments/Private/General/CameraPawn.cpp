@@ -2,9 +2,11 @@
 
 #include "DataSubsystem.h"
 #include "General/FunctionLibrary.h"
+#include "Interaction/UnitSceneSubsystem.h"
 #include "UI/ConfiguratorWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -51,6 +53,7 @@ void ACameraPawn::PossessedBy(AController* NewController) {
   Super::PossessedBy(NewController);
   if (APlayerController* Player = Cast<APlayerController>(NewController)) {
     UGeneralFunctionLibrary::SetInputMode(Player, EViewportInputMode::GameAndUI);
+    Player->bEnableClickEvents = true;
 
     if (ConfiguratorWidgetClass && !ConfiguratorWidget) {
       ConfiguratorWidget = CreateWidget<UConfiguratorWidget>(Player, ConfiguratorWidgetClass);
@@ -185,5 +188,8 @@ void ACameraPawn::StartTransition(const FView& NewView, bool bSaveCurrent) {
   TransitionTime = 0.0f;
   bTransitioning = true;
   SetActorTickEnabled(true);
+  if (UUnitSceneSubsystem* Scene = GetWorld()->GetSubsystem<UUnitSceneSubsystem>()) {
+    Scene->SetSelectedUnit(NewView.Mode == ECameraViewMode::Unit ? NewView.SelectedId : FString());
+  }
   OnViewChanged.Broadcast(CurrentView.Mode, CurrentView.SelectedId);
 }

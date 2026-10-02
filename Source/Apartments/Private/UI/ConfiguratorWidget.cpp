@@ -2,12 +2,14 @@
 
 #include "DataSubsystem.h"
 #include "General/FunctionLibrary.h"
+#include "Interaction/UnitSceneSubsystem.h"
 #include "UI/SelectionEntryWidget.h"
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Engine/GameInstance.h"
+#include "Engine/World.h"
 
 void UConfiguratorWidget::NativeOnInitialized() {
   Super::NativeOnInitialized();
@@ -32,6 +34,9 @@ void UConfiguratorWidget::NativeConstruct() {
   }
 
   bHideSold = HideSoldCheckBox->IsChecked();
+  if (UUnitSceneSubsystem* Scene = GetWorld()->GetSubsystem<UUnitSceneSubsystem>()) {
+    Scene->SetHideSold(bHideSold);
+  }
   BackButton->SetIsEnabled(CameraPawn && CameraPawn->CanGoBack());
   ReserveButton->SetIsEnabled(false);
   HideUnitCard();
@@ -159,6 +164,9 @@ void UConfiguratorWidget::HandleHideSoldChanged(bool bIsChecked) {
   bHideSold = bIsChecked;
   for (USelectionEntryWidget* Entry : UnitEntries) {
     if (Entry) Entry->SetHideSold(bHideSold);
+  }
+  if (UUnitSceneSubsystem* Scene = GetWorld()->GetSubsystem<UUnitSceneSubsystem>()) {
+    Scene->SetHideSold(bHideSold);
   }
   OnSoldFilterChanged.Broadcast(bHideSold);
 }

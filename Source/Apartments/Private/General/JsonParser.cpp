@@ -69,17 +69,27 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
 
     const TSharedPtr<FJsonObject> FloorObject = FloorValue->AsObject();
     FFloorData Floor;
+    if (!FloorObject.IsValid()) {
+      return ParseError(FString::Printf(TEXT("floors[%d] must be an object."), FloorIndex));
+    }
+
+    if (!ReadString(*FloorObject, TEXT("id"), Floor.Id)) {
+      return ParseError(FString::Printf(TEXT("Invalid id at floors[%d]."), FloorIndex));
+    }
+
     double Number = 0.0;
-    //TODO
-    if (!FloorObject.IsValid()
-      || !ReadString(*FloorObject, TEXT("id"), Floor.Id)
-      || !FloorObject->TryGetNumberField(TEXT("number"), Number)
-      || !FMath::IsFinite(Number) || Number < 1.0 || Number > MAX_int32
-      || static_cast<int32>(Number) != Number
-      || !ReadVector(*FloorObject, TEXT("focus_point"), Floor.FocusPoint)) {
-      return ParseError(FString::Printf(TEXT("Invalid floors[%d]: check id, number and focus_point."), FloorIndex));
+    if (!FloorObject->TryGetNumberField(TEXT("number"), Number)
+      || !FMath::IsFinite(Number) || Number < 1.0 || Number > MAX_int32) {
+      return ParseError(FString::Printf(TEXT("Invalid number at floors[%d]."), FloorIndex));
+    }
+    if (static_cast<int32>(Number) != Number) {
+      return ParseError(FString::Printf(TEXT("Floor number must be an integer at floors[%d]."), FloorIndex));
     }
     Floor.Number = static_cast<int32>(Number);
+
+    if (!ReadVector(*FloorObject, TEXT("focus_point"), Floor.FocusPoint)) {
+      return ParseError(FString::Printf(TEXT("Invalid focus_point at floors[%d]."), FloorIndex));
+    }
 
     if (FloorIds.Contains(Floor.Id) || FloorNumbers.Contains(Floor.Number)) {
       return ParseError(FString::Printf(TEXT("Duplicate floor id or number at floors[%d]."), FloorIndex));
