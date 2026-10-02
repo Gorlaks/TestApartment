@@ -1,7 +1,8 @@
-#include "CameraPawn.h"
+#include "General/CameraPawn.h"
 
 #include "DataSubsystem.h"
 #include "General/FunctionLibrary.h"
+#include "UI/ConfiguratorWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
@@ -33,6 +34,11 @@ void ACameraPawn::BeginPlay() {
 }
 
 void ACameraPawn::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+  if (ConfiguratorWidget) {
+    ConfiguratorWidget->RemoveFromParent();
+    ConfiguratorWidget = nullptr;
+  }
+
   if (UGameInstance* GameInstance = GetGameInstance()) {
     if (UDataSubsystem* Data = GameInstance->GetSubsystem<UDataSubsystem>()) {
       Data->OnLoadFinished.RemoveDynamic(this, &ACameraPawn::HandleDataLoaded);
@@ -45,6 +51,14 @@ void ACameraPawn::PossessedBy(AController* NewController) {
   Super::PossessedBy(NewController);
   if (APlayerController* Player = Cast<APlayerController>(NewController)) {
     UGeneralFunctionLibrary::SetInputMode(Player, EViewportInputMode::GameAndUI);
+
+    if (ConfiguratorWidgetClass && !ConfiguratorWidget) {
+      ConfiguratorWidget = CreateWidget<UConfiguratorWidget>(Player, ConfiguratorWidgetClass);
+      if (ConfiguratorWidget) {
+        ConfiguratorWidget->SetCameraPawn(this);
+        ConfiguratorWidget->AddToViewport();
+      }
+    }
   }
 }
 
