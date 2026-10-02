@@ -1,3 +1,4 @@
+// Подсистема уровня: обновляет подсветку и вид квартир при выборе и фильтрации
 #pragma once
 
 #include "CoreMinimal.h"
@@ -6,7 +7,7 @@
 
 class UUnitComponent;
 
-// Keeps scene visuals in sync with camera selection and the sold filter.
+// Обновляет вид квартир, когда меняется выбор камеры или фильтр проданных
 UCLASS()
 class APARTMENTS_API UUnitSceneSubsystem : public UWorldSubsystem {
   GENERATED_BODY()
@@ -19,6 +20,7 @@ public:
   void SetHideSold(bool bInHideSold);
 
 private:
+  // Компоненты могут исчезнуть при выгрузке уровня, поэтому ссылки слабые
   TArray<TWeakObjectPtr<UUnitComponent>> Units;
   FString SelectedUnitId;
   bool bHideSold = false;

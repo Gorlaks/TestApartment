@@ -1,4 +1,4 @@
-// Building data: apartments, floors and their focus points.
+// Данные из json: дом, этажи, квартиры и точки фокуса камеры
 #pragma once
 
 #include "CoreMinimal.h"

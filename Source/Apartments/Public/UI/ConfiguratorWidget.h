@@ -1,3 +1,4 @@
+// Логика интерфейса конфигуратора здания
 #pragma once
 
 #include "CoreMinimal.h"
@@ -16,7 +17,7 @@ class UWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSoldFilterChanged, bool, bHideSold);
 
-// Coordinates data, camera navigation and UMG controls. The layout stays in the Widget Blueprint.
+// Связывает данные, камеру и кнопки, но нешний вид настраивается уже в редакторе
 UCLASS()
 class APARTMENTS_API UConfiguratorWidget : public UUserWidget {
   GENERATED_BODY()
@@ -27,7 +28,7 @@ public:
   UFUNCTION(BlueprintPure)
   bool IsHidingSold() const { return bHideSold; }
 
-  // Scene actors can subscribe when their visual representation is added.
+  // Подпись на событие смены фильтра
   UPROPERTY(BlueprintAssignable)
   FOnSoldFilterChanged OnSoldFilterChanged;
 
@@ -43,6 +44,7 @@ private:
   UPROPERTY(EditDefaultsOnly)
   TSubclassOf<USelectionEntryWidget> UnitEntryClass;
 
+  // Поля необходимые для Blueprint виджета (создаются вручную в редакторе)
   UPROPERTY(meta = (BindWidget))
   TObjectPtr<UVerticalBox> FloorList;
 

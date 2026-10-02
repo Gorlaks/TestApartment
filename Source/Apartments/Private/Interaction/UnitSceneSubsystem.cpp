@@ -29,6 +29,7 @@ void UUnitSceneSubsystem::SetHideSold(bool bInHideSold) {
 }
 
 void UUnitSceneSubsystem::RefreshUnits() {
+  // Обновляет квартиры после смены фильтра или события клика
   for (int32 Index = Units.Num() - 1; Index >= 0; --Index) {
     UUnitComponent* Unit = Units[Index].Get();
     if (Unit) {

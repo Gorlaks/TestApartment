@@ -47,6 +47,16 @@ bool FJsonParserTest::RunTest(const FString& Parameters) {
 
   const FConfigParseResult InvalidRoot = FJsonParser::Parse(TEXT("{\"building\":{}}"));
   TestFalse(TEXT("Missing building fields fail safely"), InvalidRoot.bSuccess);
+
+  TestFalse(TEXT("Malformed JSON fails safely"), FJsonParser::Parse(TEXT("{\"building\":")).bSuccess);
+  TestFalse(TEXT("Missing apartment area fails safely"),
+    FJsonParser::Parse(Json.Replace(TEXT("\"area_sqm\": 42.5,"), TEXT(""))).bSuccess);
+  TestFalse(TEXT("String coordinate is rejected"),
+    FJsonParser::Parse(Json.Replace(TEXT("\"x\": 10"), TEXT("\"x\": \"10\""))).bSuccess);
+  TestFalse(TEXT("Number used as apartment ID is rejected"),
+    FJsonParser::Parse(Json.Replace(TEXT("\"id\": \"101\""), TEXT("\"id\": 101"))).bSuccess);
+  TestFalse(TEXT("Fractional floor number is rejected"),
+    FJsonParser::Parse(Json.Replace(TEXT("\"number\": 1"), TEXT("\"number\": 1.5"))).bSuccess);
   return true;
 }
 

@@ -17,8 +17,6 @@ bool UDataSubsystem::LoadDefaultData() {
   FilePath.TrimStartAndEndInline();
   return LoadFromFile(FilePath);
 }
-//TODO
-// Load data from Json file
 bool UDataSubsystem::LoadFromFile(const FString& FilePath) {
   if (bIsLoading) return false;
 
@@ -29,9 +27,11 @@ bool UDataSubsystem::LoadFromFile(const FString& FilePath) {
   }
 
   const FString AbsolutePath = FPaths::ConvertRelativePathToFull(FilePath);
+  // Подсистема может закрыться раньше задачи, поэтому не захватываем this напрямую
   const TWeakObjectPtr<UDataSubsystem> WeakThis(this);
   bIsLoading = true;
 
+  // Async, чтобы чтение файла и разбор JSON не задерживали игровой поток
   Async(EAsyncExecution::ThreadPool, [WeakThis, AbsolutePath]() {
     FConfigParseResult Result;
     FString JsonText;
@@ -41,6 +41,7 @@ bool UDataSubsystem::LoadFromFile(const FString& FilePath) {
       Result = FJsonParser::Parse(JsonText);
     }
 
+    // Меняет данные и вызывает подписчиков в игровом потоке
     AsyncTask(ENamedThreads::GameThread, [WeakThis, Result = MoveTemp(Result)]() mutable {
       UDataSubsystem* Subsystem = WeakThis.Get();
       if (!Subsystem || !Subsystem->bIsLoading) return;
@@ -50,6 +51,7 @@ bool UDataSubsystem::LoadFromFile(const FString& FilePath) {
         Subsystem->bHasData = true;
         UGeneralFunctionLibrary::PrintLog(Result.Message);
       } else {
+        // При ошибке оставляет последние рабочие данные
         UGeneralFunctionLibrary::PrintLog(Result.Message, EPrintLogLevel::Error);
       }
 

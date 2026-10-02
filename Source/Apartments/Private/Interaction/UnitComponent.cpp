@@ -16,6 +16,7 @@ void UUnitComponent::BeginPlay() {
   Super::BeginPlay();
 
   UnitId.TrimStartAndEndInline();
+  // Запоминаем исходный материал, чтобы вернуть его после снятия подсветки
   VisualMesh = GetOwner()->FindComponentByClass<UMeshComponent>();
   if (VisualMesh && VisualMesh->GetNumMaterials() > 0) {
     OriginalMaterial = VisualMesh->GetMaterial(0);
@@ -32,6 +33,7 @@ void UUnitComponent::BeginPlay() {
   }
   if (DataSubsystem) {
     DataSubsystem->OnLoadFinished.AddUniqueDynamic(this, &UUnitComponent::HandleDataLoaded);
+    // Данные могли загрузиться раньше, чем появился этот Actor
     if (DataSubsystem->HasData()) ResolveStatus();
   }
 
@@ -80,6 +82,7 @@ void UUnitComponent::ResolveStatus() {
 void UUnitComponent::ApplyVisuals(bool bSelected, bool bHideSold) {
   if (!VisualMesh) return;
 
+  // Custom Depth можно использовать для контура в материале постобработки
   VisualMesh->SetRenderCustomDepth(bSelected);
   VisualMesh->SetCustomDepthStencilValue(1);
 

@@ -6,10 +6,19 @@
 #include "Serialization/JsonSerializer.h"
 
 namespace {
+// UE умеет преобразовывать строки и числа друг в друга, поэтому проверяем тип явно
 bool ReadString(const FJsonObject& Object, const TCHAR* Field, FString& Value) {
+  const TSharedPtr<FJsonValue> JsonValue = Object.TryGetField(Field);
+  if (!JsonValue.IsValid() || JsonValue->Type != EJson::String) return false;
   if (!Object.TryGetStringField(Field, Value)) return false;
   Value.TrimStartAndEndInline();
   return !Value.IsEmpty();
+}
+
+bool ReadNumber(const FJsonObject& Object, const TCHAR* Field, double& Value) {
+  const TSharedPtr<FJsonValue> JsonValue = Object.TryGetField(Field);
+  return JsonValue.IsValid() && JsonValue->Type == EJson::Number
+    && JsonValue->TryGetNumber(Value) && FMath::IsFinite(Value);
 }
 
 bool ReadVector(const FJsonObject& Object, const TCHAR* Field, FVector& Value) {
@@ -17,11 +26,10 @@ bool ReadVector(const FJsonObject& Object, const TCHAR* Field, FVector& Value) {
   if (!Object.TryGetObjectField(Field, VectorObject) || !VectorObject || !VectorObject->IsValid()) return false;
 
   double X, Y, Z;
-  if (!(*VectorObject)->TryGetNumberField(TEXT("x"), X)
-    || !(*VectorObject)->TryGetNumberField(TEXT("y"), Y)
-    || !(*VectorObject)->TryGetNumberField(TEXT("z"), Z)) return false;
+  if (!ReadNumber(**VectorObject, TEXT("x"), X)
+    || !ReadNumber(**VectorObject, TEXT("y"), Y)
+    || !ReadNumber(**VectorObject, TEXT("z"), Z)) return false;
 
-  if (!FMath::IsFinite(X) || !FMath::IsFinite(Y) || !FMath::IsFinite(Z)) return false;
   Value = FVector(X, Y, Z);
   return true;
 }
@@ -44,6 +52,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
     return ParseError(TEXT("Missing building object."));
   }
 
+  // При неверном обязательном поле, работа прерывается и новые данные не отдаются
   FBuildingData Building;
   if (!ReadString(**BuildingObject, TEXT("id"), Building.Id)
     || !ReadString(**BuildingObject, TEXT("name"), Building.Name)
@@ -56,6 +65,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
     return ParseError(TEXT("building.floors must be a non-empty array."));
   }
 
+  // Далее также идут проверки этажей и квартир
   TSet<FString> FloorIds;
   TSet<int32> FloorNumbers;
   TSet<FString> ApartmentIds;
@@ -78,8 +88,8 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
     }
 
     double Number = 0.0;
-    if (!FloorObject->TryGetNumberField(TEXT("number"), Number)
-      || !FMath::IsFinite(Number) || Number < 1.0 || Number > MAX_int32) {
+    if (!ReadNumber(*FloorObject, TEXT("number"), Number)
+      || Number < 1.0 || Number > MAX_int32) {
       return ParseError(FString::Printf(TEXT("Invalid number at floors[%d]."), FloorIndex));
     }
     if (static_cast<int32>(Number) != Number) {
@@ -103,21 +113,26 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
     }
 
     for (int32 ApartmentIndex = 0; ApartmentIndex < Apartments->Num(); ++ApartmentIndex) {
+      const FString ApartmentPath = FString::Printf(
+        TEXT("floors[%d].apartments[%d]"), FloorIndex, ApartmentIndex);
       const TSharedPtr<FJsonValue>& ApartmentValue = (*Apartments)[ApartmentIndex];
       if (!ApartmentValue.IsValid() || ApartmentValue->Type != EJson::Object) {
-        return ParseError(FString::Printf(TEXT("floors[%d].apartments[%d] must be an object."), FloorIndex, ApartmentIndex));
+        return ParseError(ApartmentPath + TEXT(" must be an object"));
       }
 
       const TSharedPtr<FJsonObject> ApartmentObject = ApartmentValue->AsObject();
+      if (!ApartmentObject.IsValid()) {
+        return ParseError(ApartmentPath + TEXT("must be an object"));
+      }
+
       FUnitData Apartment;
+      if (!ReadString(*ApartmentObject, TEXT("id"), Apartment.Id)) {
+        return ParseError(ApartmentPath + TEXT("id is empty"));
+      }
+
       FString Status;
-      if (!ApartmentObject.IsValid()
-        || !ReadString(*ApartmentObject, TEXT("id"), Apartment.Id)
-        || !ReadString(*ApartmentObject, TEXT("status"), Status)
-        || !ApartmentObject->TryGetNumberField(TEXT("area_sqm"), Apartment.AreaSqm)
-        || !FMath::IsFinite(Apartment.AreaSqm) || Apartment.AreaSqm <= 0.0
-        || !ReadVector(*ApartmentObject, TEXT("focus_point"), Apartment.FocusPoint)) {
-        return ParseError(FString::Printf(TEXT("Invalid floors[%d].apartments[%d]: check id, status, area_sqm and focus_point."), FloorIndex, ApartmentIndex));
+      if (!ReadString(*ApartmentObject, TEXT("status"), Status)) {
+        return ParseError(ApartmentPath + TEXT("status is empty"));
       }
 
       if (Status.Equals(TEXT("free"), ESearchCase::IgnoreCase)) {
@@ -125,11 +140,20 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
       } else if (Status.Equals(TEXT("sold"), ESearchCase::IgnoreCase)) {
         Apartment.Status = EUnitStatus::Sold;
       } else {
-        return ParseError(FString::Printf(TEXT("Unknown status '%s' at floors[%d].apartments[%d]."), *Status, FloorIndex, ApartmentIndex));
+        return ParseError(ApartmentPath + TEXT("status must be free or sold"));
+      }
+
+      if (!ReadNumber(*ApartmentObject, TEXT("area_sqm"), Apartment.AreaSqm)
+        || Apartment.AreaSqm <= 0.0) {
+        return ParseError(ApartmentPath + TEXT("area_sqm must be a positive number"));
+      }
+
+      if (!ReadVector(*ApartmentObject, TEXT("focus_point"), Apartment.FocusPoint)) {
+        return ParseError(ApartmentPath + TEXT("focus_point must contain numeric x, y and z"));
       }
 
       if (ApartmentIds.Contains(Apartment.Id)) {
-        return ParseError(FString::Printf(TEXT("Duplicate apartment id '%s'."), *Apartment.Id));
+        return ParseError(FString::Printf(TEXT("Duplicate apartment id '%s'"), *Apartment.Id));
       }
       ApartmentIds.Add(Apartment.Id);
       Floor.Apartments.Add(MoveTemp(Apartment));
@@ -142,6 +166,6 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
   FConfigParseResult Result;
   Result.bSuccess = true;
   Result.Building = MoveTemp(Building);
-  Result.Message = FString::Printf(TEXT("Loaded %d floors and %d apartments."), Result.Building.Floors.Num(), ApartmentCount);
+  Result.Message = FString::Printf(TEXT("Loaded"));
   return Result;
 }

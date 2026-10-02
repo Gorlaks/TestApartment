@@ -1,3 +1,4 @@
+// Выбор этажа или квартиры в UI
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,7 +10,7 @@ class UTextBlock;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEntrySelected, FString, Id);
 
-// One reusable button for a floor or a unit. Its appearance is set in UMG.
+// Внешний вид уже в самом редакторе
 UCLASS()
 class APARTMENTS_API USelectionEntryWidget : public UUserWidget {
   GENERATED_BODY()

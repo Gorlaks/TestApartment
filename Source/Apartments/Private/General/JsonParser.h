@@ -1,3 +1,4 @@
+// Json парсер 
 #pragma once
 
 #include "DataTypes.h"
@@ -8,7 +9,6 @@ struct FConfigParseResult {
   FString Message;
 };
 
-/** Pure JSON parsing and validation; does not access UObjects or the world. */
 class FJsonParser {
 public:
   static FConfigParseResult Parse(const FString& JsonText);

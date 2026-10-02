@@ -1,3 +1,4 @@
+// Камера и переходы между общим видом, этажом и квартирой
 #pragma once
 
 #include "CoreMinimal.h"
@@ -60,6 +61,7 @@ protected:
   virtual void Tick(float DeltaTime) override;
 
 private:
+  // Ракурс камеры. То же самое сохраняется и в History.
   struct FView {
     FVector FocusPoint = FVector::ZeroVector;
     FRotator Rotation = FRotator::ZeroRotator;

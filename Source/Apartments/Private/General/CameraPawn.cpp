@@ -12,12 +12,14 @@
 
 ACameraPawn::ACameraPawn() {
   PrimaryActorTick.bCanEverTick = true;
+  // Tick разрешён, но при старте выключен. Включается только на время перелёта
   PrimaryActorTick.bStartWithTickEnabled = false;
 }
 
 void ACameraPawn::BeginPlay() {
   Super::BeginPlay();
 
+  // Камера и SpringArm добавляются и настраиваются в Blueprint
   SpringArm = FindComponentByClass<USpringArmComponent>();
   const UCameraComponent* Camera = FindComponentByClass<UCameraComponent>();
   check(SpringArm);
@@ -71,6 +73,7 @@ void ACameraPawn::Tick(float DeltaTime) {
   if (bTransitioning) {
     TransitionTime += DeltaTime;
     const float Alpha = FMath::Clamp(TransitionTime / TransitionDuration, 0.0f, 1.0f);
+    // Плавное начало и завршение перелёта
     const float SmoothAlpha = FMath::InterpEaseInOut(0.0f, 1.0f, Alpha, 2.0f);
 
     SetActorLocation(FMath::Lerp(TransitionStart.FocusPoint, CurrentView.FocusPoint, SmoothAlpha));
@@ -177,17 +180,20 @@ ACameraPawn::FView ACameraPawn::CaptureView() const {
 }
 
 void ACameraPawn::StartTransition(const FView& NewView, bool bSaveCurrent) {
+  // Сохраняем ракурс в историю для возможности отката
   if (bSaveCurrent && bHasView
     && (CurrentView.Mode != NewView.Mode || CurrentView.SelectedId != NewView.SelectedId)) {
     History.Add(CurrentView);
   }
 
+  // Новый переход начинается с текущего положения, даже если прошлый ещё не закончился
   TransitionStart = CaptureView();
   CurrentView = NewView;
   bHasView = true;
   TransitionTime = 0.0f;
   bTransitioning = true;
   SetActorTickEnabled(true);
+  // UI и подсветка реагируют сразу, пока камера ещё летит
   if (UUnitSceneSubsystem* Scene = GetWorld()->GetSubsystem<UUnitSceneSubsystem>()) {
     Scene->SetSelectedUnit(NewView.Mode == ECameraViewMode::Unit ? NewView.SelectedId : FString());
   }

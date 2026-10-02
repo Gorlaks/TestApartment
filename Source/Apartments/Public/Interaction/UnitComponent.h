@@ -1,3 +1,4 @@
+// Связывает объект квартиры в сцене с данными и обработкой клика
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,7 +9,6 @@ class UDataSubsystem;
 class UMaterialInterface;
 class UMeshComponent;
 
-// Set UnitId to the matching apartment ID from the JSON file.
 UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
 class APARTMENTS_API UUnitComponent : public UActorComponent {
   GENERATED_BODY()
@@ -22,6 +22,7 @@ protected:
   virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+  // UnitId задаётся у экземпляра и совпадает с ID в json
   UPROPERTY(EditInstanceOnly)
   FString UnitId;
 

@@ -40,6 +40,7 @@ void UConfiguratorWidget::NativeConstruct() {
   BackButton->SetIsEnabled(CameraPawn && CameraPawn->CanGoBack());
   ReserveButton->SetIsEnabled(false);
   HideUnitCard();
+  // Виджет создаётся отдельно и JSON мог загрузиться ещё до открытия этого виджета
   RefreshFromData();
 }
 
@@ -67,6 +68,7 @@ void UConfiguratorWidget::RebuildFloorList() {
   FloorList->ClearChildren();
   if (!FloorEntryClass) return;
 
+  // Создаёт кнопки этажей по полученным данным
   for (const FFloorData& Floor : BuildingData.Floors) {
     USelectionEntryWidget* Entry = CreateWidget<USelectionEntryWidget>(GetOwningPlayer(), FloorEntryClass);
     if (!Entry) continue;
@@ -162,6 +164,7 @@ void UConfiguratorWidget::HandleUnitSelected(FString Id) {
 
 void UConfiguratorWidget::HandleHideSoldChanged(bool bIsChecked) {
   bHideSold = bIsChecked;
+  // Фильтр сразу меняет кнопки и вид квартир в сцене
   for (USelectionEntryWidget* Entry : UnitEntries) {
     if (Entry) Entry->SetHideSold(bHideSold);
   }

@@ -1,9 +1,10 @@
 #include "FunctionLibrary.h"
 
+#include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogGeneral, Log, All);
-//TODO
+
 void UGeneralFunctionLibrary::PrintLog(const FString& Message, EPrintLogLevel Level) {
   switch (Level) {
   case EPrintLogLevel::Warning:
@@ -18,6 +19,14 @@ void UGeneralFunctionLibrary::PrintLog(const FString& Message, EPrintLogLevel Le
   default:
     UE_LOG(LogGeneral, Log, TEXT("%s"), *Message);
     break;
+  }
+
+  // Сообщение видно в игре и остаётся в Output Log
+  if (GEngine) {
+    FColor Color = FColor::White;
+    if (Level == EPrintLogLevel::Warning) Color = FColor::Yellow;
+    if (Level == EPrintLogLevel::Error) Color = FColor::Red;
+    GEngine->AddOnScreenDebugMessage(-1, 5.0f, Color, Message);
   }
 }
 
