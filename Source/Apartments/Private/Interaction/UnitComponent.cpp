@@ -82,14 +82,11 @@ void UUnitComponent::ResolveStatus() {
   }
 }
 
-// применение визуальный эффектов если sold и выбран
+// применение визуальный эффектов если sold или selected
 void UUnitComponent::ApplyVisuals(bool bSelected, bool bHideSold) {
   for (int32 Index = 0; Index < ResolvedMeshes.Num(); ++Index) {
     UStaticMeshComponent* Mesh = ResolvedMeshes[Index];
     if (!Mesh) continue;
-
-    Mesh->SetRenderCustomDepth(bSelected);
-    Mesh->SetCustomDepthStencilValue(1);
 
     if (Mesh->GetNumMaterials() == 0) continue;
     UMaterialInterface* Material = OriginalMaterials[Index];

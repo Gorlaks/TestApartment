@@ -69,7 +69,6 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
   TSet<FString> FloorIds;
   TSet<int32> FloorNumbers;
   TSet<FString> ApartmentIds;
-  int32 ApartmentCount = 0;
 
   for (int32 FloorIndex = 0; FloorIndex < Floors->Num(); ++FloorIndex) {
     const TSharedPtr<FJsonValue>& FloorValue = (*Floors)[FloorIndex];
@@ -117,7 +116,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
         TEXT("floors[%d].apartments[%d]"), FloorIndex, ApartmentIndex);
       const TSharedPtr<FJsonValue>& ApartmentValue = (*Apartments)[ApartmentIndex];
       if (!ApartmentValue.IsValid() || ApartmentValue->Type != EJson::Object) {
-        return ParseError(ApartmentPath + TEXT(" must be an object"));
+        return ParseError(ApartmentPath + TEXT("must be an object"));
       }
 
       const TSharedPtr<FJsonObject> ApartmentObject = ApartmentValue->AsObject();
@@ -157,7 +156,6 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
       }
       ApartmentIds.Add(Apartment.Id);
       Floor.Apartments.Add(MoveTemp(Apartment));
-      ++ApartmentCount;
     }
 
     Building.Floors.Add(MoveTemp(Floor));

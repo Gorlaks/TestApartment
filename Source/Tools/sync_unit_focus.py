@@ -23,6 +23,8 @@ def main():
       continue
 
     unit_id = str(unit.get_editor_property("unit_id")).strip()
+    if unit_id not in apartments:
+      raise ValueError(f"ID {unit_id} у {actor.get_actor_label()} отсутствует в JSON")
 
     location, extent = actor.get_actor_bounds(False)
     positions[unit_id] = {
@@ -30,7 +32,7 @@ def main():
       "y": round(float(location.y), 2),
       "z": round(float(location.z), 2),
     }
-    apartments[unit_id]["focus_point"] = position
+    apartments[unit_id]["focus_point"] = positions[unit_id]
 
   for floor in config["building"]["floors"]:
     unit_ids = [str(apartment["id"]).strip() for apartment in floor["apartments"]]

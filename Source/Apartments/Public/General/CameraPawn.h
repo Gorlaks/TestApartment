@@ -14,6 +14,7 @@ enum class ECameraViewMode : uint8 {
   Unit
 };
 
+// Делегат на изменения камеры
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCameraViewChanged, ECameraViewMode, Mode, FString, SelectedId);
 
 UCLASS()
@@ -23,24 +24,30 @@ class APARTMENTS_API ACameraPawn : public APawn {
 public:
   ACameraPawn();
 
+  // Отдаляет и показывает общий план
   UFUNCTION(BlueprintCallable)
   bool ShowGenplan();
 
+  // Показывает этаж
   UFUNCTION(BlueprintCallable)
   bool ShowFloor(int32 FloorNumber);
 
+  // Показывает помещение 
   UFUNCTION(BlueprintCallable)
   bool ShowUnit(const FString& UnitId);
 
+  // Возврат по истории
   UFUNCTION(BlueprintCallable)
   bool GoBack();
 
+  // Вращение если вернулись на общий план
   UFUNCTION(BlueprintCallable)
   void Orbit(float HorizontalDelta, float VerticalDelta);
 
   UFUNCTION(BlueprintPure)
   bool CanGoBack() const { return !History.IsEmpty(); }
 
+  // Здание, Этаж или помещение
   UFUNCTION(BlueprintPure)
   ECameraViewMode GetViewMode() const { return CurrentView.Mode; }
 
