@@ -122,8 +122,11 @@ void UConfiguratorWidget::ShowFloorUnits(const FFloorData& Floor) {
 
 void UConfiguratorWidget::ShowUnitCard(const FUnitData& Unit) {
   SelectedUnitId = Unit.Id;
-  UnitIdText->SetText(FText::FromString(Unit.Id));
-  UnitAreaText->SetText(FText::AsNumber(Unit.AreaSqm));
+  UnitIdText->SetText(FText::FromString(FString(TEXT("Id: " + Unit.Id))));
+  UnitAreaText->SetText(
+    FText::Format(
+      FText::FromString(TEXT("Площадь: {0}")),
+      FText::AsNumber(Unit.AreaSqm)));
   UnitStatusText->SetText(FText::FromString(
     Unit.Status == EUnitStatus::Sold ? TEXT("Продано") : TEXT("Свободно")));
   ReserveButton->SetIsEnabled(Unit.Status == EUnitStatus::Free);
