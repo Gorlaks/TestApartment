@@ -1,6 +1,6 @@
-Unreal Engine 5.8. Apartments.uproject, уровень L_Main_P. Данные json лежат в Source/Data/data.json и загружаются при запуске
+# Архитектура
 
-## Архитектура
+Unreal Engine 5.8. Apartments.uproject, уровень L_Main_P. Данные json лежат в Source/Data/data.json и загружаются при запуске
 
 - UDataSubsystem (GameInstanceSubsystem) хранит данные, чтобы камера, сцена и интерфейс брали их из одного места. Чтение файла и разбор JSON идут в фоновом потоке; результат передаётся в игровой поток. При ошибке уже загруженные данные не заменяются
 - FJsonParser отдельно проверяет структуру и обязательные поля JSON. Ну и собирает данные
