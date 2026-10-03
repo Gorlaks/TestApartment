@@ -3,11 +3,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Engine/EngineTypes.h"
 #include "UnitComponent.generated.h"
 
 class UDataSubsystem;
 class UMaterialInterface;
-class UMeshComponent;
+class UStaticMeshComponent;
 
 UCLASS(Blueprintable, meta = (BlueprintSpawnableComponent))
 class APARTMENTS_API UUnitComponent : public UActorComponent {
@@ -33,14 +34,18 @@ private:
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UMaterialInterface> SoldMaterial;
 
+  // Меши, на которых меняется материал при выборе квартиры и включении фильтра
+  UPROPERTY(EditDefaultsOnly, meta = (UseComponentPicker, AllowedClasses = "/Script/Engine.StaticMeshComponent"))
+  TArray<FComponentReference> VisualMeshes;
+
   UPROPERTY(Transient)
   TObjectPtr<UDataSubsystem> DataSubsystem;
 
   UPROPERTY(Transient)
-  TObjectPtr<UMeshComponent> VisualMesh;
+  TArray<TObjectPtr<UStaticMeshComponent>> ResolvedMeshes;
 
   UPROPERTY(Transient)
-  TObjectPtr<UMaterialInterface> OriginalMaterial;
+  TArray<TObjectPtr<UMaterialInterface>> OriginalMaterials;
 
   bool bHasStatus = false;
   bool bIsSold = false;

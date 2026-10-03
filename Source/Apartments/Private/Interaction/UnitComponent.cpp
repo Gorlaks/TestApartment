@@ -5,7 +5,7 @@
 #include "General/CameraPawn.h"
 #include "General/FunctionLibrary.h"
 #include "Interaction/UnitSceneSubsystem.h"
-#include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -16,10 +16,13 @@ void UUnitComponent::BeginPlay() {
   Super::BeginPlay();
 
   UnitId.TrimStartAndEndInline();
-  // Запоминаем исходный материал, чтобы вернуть его после снятия подсветки
-  VisualMesh = GetOwner()->FindComponentByClass<UMeshComponent>();
-  if (VisualMesh && VisualMesh->GetNumMaterials() > 0) {
-    OriginalMaterial = VisualMesh->GetMaterial(0);
+  // Запоминаем материалы выбранных мешей, чтобы вернуть их после снятия эффекта
+  for (const FComponentReference& Reference : VisualMeshes) {
+    UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Reference.GetComponent(GetOwner()));
+    if (!Mesh || Mesh->GetOwner() != GetOwner() || ResolvedMeshes.Contains(Mesh)) continue;
+
+    ResolvedMeshes.Add(Mesh);
+    OriginalMaterials.Add(Mesh->GetNumMaterials() > 0 ? Mesh->GetMaterial(0) : nullptr);
   }
 
   GetOwner()->OnClicked.AddUniqueDynamic(this, &UUnitComponent::HandleActorClicked);
@@ -79,21 +82,24 @@ void UUnitComponent::ResolveStatus() {
   }
 }
 
+// применение визуальный эффектов если sold и выбран
 void UUnitComponent::ApplyVisuals(bool bSelected, bool bHideSold) {
-  if (!VisualMesh) return;
+  for (int32 Index = 0; Index < ResolvedMeshes.Num(); ++Index) {
+    UStaticMeshComponent* Mesh = ResolvedMeshes[Index];
+    if (!Mesh) continue;
 
-  // Custom Depth можно использовать для контура в материале постобработки
-  VisualMesh->SetRenderCustomDepth(bSelected);
-  VisualMesh->SetCustomDepthStencilValue(1);
+    Mesh->SetRenderCustomDepth(bSelected);
+    Mesh->SetCustomDepthStencilValue(1);
 
-  if (VisualMesh->GetNumMaterials() == 0) return;
-  UMaterialInterface* Material = OriginalMaterial;
-  if (bSelected && SelectedMaterial) {
-    Material = SelectedMaterial;
-  } else if (bHideSold && bHasStatus && bIsSold && SoldMaterial) {
-    Material = SoldMaterial;
+    if (Mesh->GetNumMaterials() == 0) continue;
+    UMaterialInterface* Material = OriginalMaterials[Index];
+    if (bSelected && SelectedMaterial) {
+      Material = SelectedMaterial;
+    } else if (bHideSold && bHasStatus && bIsSold && SoldMaterial) {
+      Material = SoldMaterial;
+    }
+    if (Mesh->GetMaterial(0) != Material) Mesh->SetMaterial(0, Material);
   }
-  if (VisualMesh->GetMaterial(0) != Material) VisualMesh->SetMaterial(0, Material);
 }
 
 void UUnitComponent::HandleDataLoaded(bool bSuccess, FString Message) {

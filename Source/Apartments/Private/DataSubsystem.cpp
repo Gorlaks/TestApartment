@@ -13,7 +13,7 @@ void UDataSubsystem::Initialize(FSubsystemCollectionBase& Collection) {
 
 bool UDataSubsystem::LoadDefaultData() {
   FString FilePath = FPaths::Combine(
-    FPaths::ProjectDir(), TEXT("Source"), TEXT("Data"), TEXT("config.json"));
+    FPaths::ProjectDir(), TEXT("Source"), TEXT("Data"), TEXT("data.json"));
   FilePath.TrimStartAndEndInline();
   return LoadFromFile(FilePath);
 }

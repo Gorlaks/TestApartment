@@ -55,7 +55,7 @@ protected:
   virtual void Tick(float DeltaTime) override;
 
 private:
-  // Ракурс камеры. То же самое сохраняется и в History.
+  // Ракурс камеры (то же самое сохраняется и в History)
   struct FView {
     FVector FocusPoint = FVector::ZeroVector;
     FRotator Rotation = FRotator::ZeroRotator;
