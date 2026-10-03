@@ -181,7 +181,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
   FConfigParseResult Result;
   Result.bSuccess = true;
   Result.Building = MoveTemp(Building);
-  Result.Message = TEXT("Data is loaded.");
+  Result.Message = TEXT("Data is loaded");
   if (!Warnings.IsEmpty()) {
     Result.Message = FString::Printf(TEXT("Building data loaded with %d warning(s)"), Warnings.Num());
   }
