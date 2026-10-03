@@ -52,7 +52,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
     return ParseError(TEXT("Missing building object."));
   }
 
-  // При неверном обязательном поле, работа прерывается и новые данные не отдаются
+  // Без точки общего вида камера не сможет показать здание
   FBuildingData Building;
   if (!ReadString(**BuildingObject, TEXT("id"), Building.Id)
     || !ReadString(**BuildingObject, TEXT("name"), Building.Name)
@@ -65,7 +65,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
     return ParseError(TEXT("building.floors must be a non-empty array."));
   }
 
-  // Далее также идут проверки этажей и квартир
+  TArray<FString> Warnings;
   TSet<FString> FloorIds;
   TSet<int32> FloorNumbers;
   TSet<FString> ApartmentIds;
@@ -73,42 +73,51 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
   for (int32 FloorIndex = 0; FloorIndex < Floors->Num(); ++FloorIndex) {
     const TSharedPtr<FJsonValue>& FloorValue = (*Floors)[FloorIndex];
     if (!FloorValue.IsValid() || FloorValue->Type != EJson::Object) {
-      return ParseError(FString::Printf(TEXT("floors[%d] must be an object."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("floors[%d] must be an object."), FloorIndex));
+      continue;
     }
 
     const TSharedPtr<FJsonObject> FloorObject = FloorValue->AsObject();
     FFloorData Floor;
     if (!FloorObject.IsValid()) {
-      return ParseError(FString::Printf(TEXT("floors[%d] must be an object."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("floors[%d] must be an object."), FloorIndex));
+      continue;
     }
 
     if (!ReadString(*FloorObject, TEXT("id"), Floor.Id)) {
-      return ParseError(FString::Printf(TEXT("Invalid id at floors[%d]."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("Invalid id at floors[%d]."), FloorIndex));
+      continue;
     }
 
     double Number = 0.0;
     if (!ReadNumber(*FloorObject, TEXT("number"), Number)
       || Number < 1.0 || Number > MAX_int32) {
-      return ParseError(FString::Printf(TEXT("Invalid number at floors[%d]."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("Invalid number at floors[%d]."), FloorIndex));
+      continue;
     }
     if (static_cast<int32>(Number) != Number) {
-      return ParseError(FString::Printf(TEXT("Floor number must be an integer at floors[%d]."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("Floor number must be an integer at floors[%d]."), FloorIndex));
+      continue;
     }
     Floor.Number = static_cast<int32>(Number);
 
     if (!ReadVector(*FloorObject, TEXT("focus_point"), Floor.FocusPoint)) {
-      return ParseError(FString::Printf(TEXT("Invalid focus_point at floors[%d]."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("Invalid focus_point at floors[%d]."), FloorIndex));
+      continue;
     }
 
     if (FloorIds.Contains(Floor.Id) || FloorNumbers.Contains(Floor.Number)) {
-      return ParseError(FString::Printf(TEXT("Duplicate floor id or number at floors[%d]."), FloorIndex));
+      Warnings.Add(FString::Printf(TEXT("Duplicate floor id or number at floors[%d]."), FloorIndex));
+      continue;
     }
     FloorIds.Add(Floor.Id);
     FloorNumbers.Add(Floor.Number);
 
     const TArray<TSharedPtr<FJsonValue>>* Apartments = nullptr;
-    if (!FloorObject->TryGetArrayField(TEXT("apartments"), Apartments) || !Apartments || Apartments->IsEmpty()) {
-      return ParseError(FString::Printf(TEXT("floors[%d].apartments must be a non-empty array."), FloorIndex));
+    if (!FloorObject->TryGetArrayField(TEXT("apartments"), Apartments) || !Apartments) {
+      Warnings.Add(FString::Printf(TEXT("floors[%d].apartments must be an array."), FloorIndex));
+      Building.Floors.Add(MoveTemp(Floor));
+      continue;
     }
 
     for (int32 ApartmentIndex = 0; ApartmentIndex < Apartments->Num(); ++ApartmentIndex) {
@@ -116,22 +125,26 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
         TEXT("floors[%d].apartments[%d]"), FloorIndex, ApartmentIndex);
       const TSharedPtr<FJsonValue>& ApartmentValue = (*Apartments)[ApartmentIndex];
       if (!ApartmentValue.IsValid() || ApartmentValue->Type != EJson::Object) {
-        return ParseError(ApartmentPath + TEXT("must be an object"));
+        Warnings.Add(ApartmentPath + TEXT(" must be an object."));
+        continue;
       }
 
       const TSharedPtr<FJsonObject> ApartmentObject = ApartmentValue->AsObject();
       if (!ApartmentObject.IsValid()) {
-        return ParseError(ApartmentPath + TEXT("must be an object"));
+        Warnings.Add(ApartmentPath + TEXT(" must be an object."));
+        continue;
       }
 
       FUnitData Apartment;
       if (!ReadString(*ApartmentObject, TEXT("id"), Apartment.Id)) {
-        return ParseError(ApartmentPath + TEXT("id is empty"));
+        Warnings.Add(ApartmentPath + TEXT(": id is missing or empty."));
+        continue;
       }
 
       FString Status;
       if (!ReadString(*ApartmentObject, TEXT("status"), Status)) {
-        return ParseError(ApartmentPath + TEXT("status is empty"));
+        Warnings.Add(ApartmentPath + TEXT(": status is missing or empty."));
+        continue;
       }
 
       if (Status.Equals(TEXT("free"), ESearchCase::IgnoreCase)) {
@@ -139,20 +152,24 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
       } else if (Status.Equals(TEXT("sold"), ESearchCase::IgnoreCase)) {
         Apartment.Status = EUnitStatus::Sold;
       } else {
-        return ParseError(ApartmentPath + TEXT("status must be free or sold"));
+        Warnings.Add(ApartmentPath + TEXT(": status must be free or sold."));
+        continue;
       }
 
       if (!ReadNumber(*ApartmentObject, TEXT("area_sqm"), Apartment.AreaSqm)
         || Apartment.AreaSqm <= 0.0) {
-        return ParseError(ApartmentPath + TEXT("area_sqm must be a positive number"));
+        Warnings.Add(ApartmentPath + TEXT(": area_sqm must be a positive number."));
+        continue;
       }
 
       if (!ReadVector(*ApartmentObject, TEXT("focus_point"), Apartment.FocusPoint)) {
-        return ParseError(ApartmentPath + TEXT("focus_point must contain numeric x, y and z"));
+        Warnings.Add(ApartmentPath + TEXT(": focus_point must contain numeric x, y and z."));
+        continue;
       }
 
       if (ApartmentIds.Contains(Apartment.Id)) {
-        return ParseError(FString::Printf(TEXT("Duplicate apartment id '%s'"), *Apartment.Id));
+        Warnings.Add(FString::Printf(TEXT("Duplicate apartment id '%s'."), *Apartment.Id));
+        continue;
       }
       ApartmentIds.Add(Apartment.Id);
       Floor.Apartments.Add(MoveTemp(Apartment));
@@ -164,6 +181,7 @@ FConfigParseResult FJsonParser::Parse(const FString& JsonText) {
   FConfigParseResult Result;
   Result.bSuccess = true;
   Result.Building = MoveTemp(Building);
-  Result.Message = FString::Printf(TEXT("Loaded"));
+  Result.Message = TEXT("Building data loaded.");
+  Result.Warnings = MoveTemp(Warnings);
   return Result;
 }

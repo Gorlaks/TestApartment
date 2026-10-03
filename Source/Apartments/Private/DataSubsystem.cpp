@@ -50,6 +50,9 @@ bool UDataSubsystem::LoadFromFile(const FString& FilePath) {
         Subsystem->BuildingData = MoveTemp(Result.Building);
         Subsystem->bHasData = true;
         UGeneralFunctionLibrary::PrintLog(Result.Message);
+        for (const FString& Warning : Result.Warnings) {
+          UGeneralFunctionLibrary::PrintLog(Warning, EPrintLogLevel::Warning);
+        }
       } else {
         // При ошибке делает лог, а старые данные не меняются
         UGeneralFunctionLibrary::PrintLog(Result.Message, EPrintLogLevel::Error);

@@ -7,6 +7,7 @@ struct FConfigParseResult {
   bool bSuccess = false;
   FBuildingData Building;
   FString Message;
+  TArray<FString> Warnings;
 };
 
 class FJsonParser {
